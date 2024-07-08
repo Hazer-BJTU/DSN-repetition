@@ -19,7 +19,7 @@ To train the model, run the following command as an example:
 ```
 python train2.py --channel 'F3_A2' --num_epochs 95 --lr 0.005 --batch_size 64 --window_size 20
 ```
-The models will be save to:
+The models will be saved to:
 ```
 ./Pretrain Model/DSN-1-F3_A2.pth
 ```
