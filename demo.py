@@ -34,8 +34,8 @@ def depict(predict_list, ground_truth):
     predict_fig = figure.add_subplot(2, 1, 2)
     predict_fig.set_title('Prediction')
     X = list(range(len(predict_list)))
-    expert_fig.plot(X, ground_truth)
-    predict_fig.plot(X, predict_list)
+    expert_fig.plot(X, ground_truth, linewidth=1.0, color='k')
+    predict_fig.plot(X, predict_list, linewidth=1.0, color='k')
 
 
 if __name__ == '__main__':
