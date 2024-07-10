@@ -124,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--channel', nargs='?', default='F3_A2')
     parser.add_argument('--cuda_idx', type=int, nargs='?', default=0)
     parser.add_argument('--num_epochs_pre', type=int, nargs='?', default=300)
-    parser.add_argument('--num_epochs', type=int, nargs='?', default=95)
+    parser.add_argument('--num_epochs', type=int, nargs='?', default=120)
     parser.add_argument('--lr_pre', type=float, nargs='?', default=0.001)
     parser.add_argument('--lr', type=float, nargs='?', default=0.005)
     parser.add_argument('--weight_decay_pre', type=float, nargs='?', default=0.0015)
