@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import module
 import load_data
@@ -34,10 +36,11 @@ def train(net, train_iter, test_iter_list, num_epochs, lr, device, window_size, 
         {'params': net.classifier.parameters(), 'lr': lr, 'weight_decay': weight_decay},
         {'params': net.feature_extraction.parameters(), 'lr': lr / 10.0, 'weight_decay': weight_decay}
     ], lr=lr)
+    best_net = None
     loss = nn.CrossEntropyLoss()
-    train_l, train_acc, test_acc = 0, 0, 0
+    best_train_l, best_train_acc, best_valid_acc = 0, 0, 0
     for epoch in range(num_epochs):
-        train_l, train_acc, test_acc, cnt, cnt2 = 0, 0, 0, 0, 0
+        train_l, train_acc, valid_acc, cnt, cnt2 = 0, 0, 0, 0, 0
         net.train()
         for i, (X, y) in enumerate(train_iter):
             cnt += X.shape[0] * X.shape[1]
@@ -56,10 +59,16 @@ def train(net, train_iter, test_iter_list, num_epochs, lr, device, window_size, 
             optimizer.step()
         train_l /= cnt2
         train_acc /= cnt
-        test_acc = evaluate_accuracy_gpu(net, test_iter_list, device)
+        valid_acc = evaluate_accuracy_gpu(net, [test_iter_list[0]], device)
+        if valid_acc > best_valid_acc and epoch > int((num_epochs - 1) * 0.75):
+            best_net = copy.deepcopy(net)
+            best_train_l = train_l
+            best_train_acc = train_acc
+            best_valid_acc = valid_acc
         print(f'Epoch {epoch} Loss: {train_l:.3f}, Train acc: {train_acc:.3f}, '
-              f'Test acc: {test_acc:.3f}')
-    return train_l, train_acc, test_acc
+              f'Test acc: {valid_acc:.3f}')
+    test_acc = evaluate_accuracy_gpu(best_net, [test_iter_list[1]], device)
+    return best_train_l, best_train_acc, best_valid_acc, test_acc, best_net
 
 
 def k_fold_train(channel, cuda_idx, num_epochs_pre, num_epochs, lr_pre, lr, weight_decay_pre, weight_decay,
@@ -68,10 +77,10 @@ def k_fold_train(channel, cuda_idx, num_epochs_pre, num_epochs, lr_pre, lr, weig
     batch_size_pre = 128
     sample_rate = 100
     results = []
-    total_train_l, total_train_acc, total_test_acc = 0, 0, 0
+    total_train_l, total_train_acc, total_valid_acc, total_test_acc = 0, 0, 0, 0
     for i in range(5):
         j = 2 * i + 1
-        test_subjects = [j]
+        test_subjects = [j, j + 1]
         train_subjects = list(range(1, 11))
         train_subjects.remove(j)
         train_subjects.remove(j + 1)
@@ -91,21 +100,22 @@ def k_fold_train(channel, cuda_idx, num_epochs_pre, num_epochs, lr_pre, lr, weig
                 load_data.load_data_subject([subject_idx], channel, sample_rate, 1, False)
             )
         DSN = module.SequenceLearning(file_path, sample_rate, 128 * 25, device)
-        train_l, train_acc, test_acc = train(DSN, train_iter, test_iter_list, num_epochs, lr,
-                                             device, window_size, weight_decay)
+        train_l, train_acc, valid_acc, test_acc, best_net = train(DSN, train_iter, test_iter_list, num_epochs, lr,
+                                                                  device, window_size, weight_decay)
         total_train_l += train_l
         total_train_acc += train_acc
+        total_valid_acc += valid_acc
         total_test_acc += test_acc
-        results.append((train_l, train_acc, test_acc))
-        torch.save(DSN, './Pretrain Model/DSN-' + str(i) + '-' + channel + '.pth')
+        results.append((train_l, train_acc, valid_acc, test_acc))
+        torch.save(best_net, './Pretrain Model/DSN-' + str(i) + '-' + channel + '.pth')
     with open('output.txt', 'w') as file:
         original_stdout = sys.stdout
         sys.stdout = file
-        print(f'(train_l, train_acc, test_acc)')
+        print(f'(train_l, train_acc, valid_acc, test_acc)')
         for i, result in enumerate(results):
-            print(f'Case{i}: ({result[0]:.3f}, {result[1]:.3f}, {result[2]:.3f})')
+            print(f'Case{i}: ({result[0]:.3f}, {result[1]:.3f}, {result[2]:.3f}, {result[3]:.3f})')
         print(f'Average train loss: {total_train_l / 5:.3f}, average train acc: {total_train_acc / 5:.3f}, '
-              f'average test acc: {total_test_acc / 5:.3f}')
+              f'average valid acc: {total_valid_acc / 5:.3f}, average test acc: {total_test_acc / 5:.3f}')
         sys.stdout = original_stdout
 
 

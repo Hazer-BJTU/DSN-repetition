@@ -91,8 +91,8 @@ def k_fold_train(channel, cuda_idx, num_epochs, lr, weight_decay):
         train_subjects.remove(j)
         train_subjects.remove(j + 1)
         net = module.get_rl_net(sample_rate, 128 * 25, 5)
-        train_iter = load_data.load_data_subject(train_subjects, channel, sample_rate, batch_size, True)
-        test_iter = load_data.load_data_subject(test_subjects, channel, sample_rate, batch_size, True)
+        train_iter = load_data.load_data_subject(train_subjects, channel, sample_rate, batch_size, False)
+        test_iter = load_data.load_data_subject(test_subjects, channel, sample_rate, batch_size, False)
         train_l, train_acc, test_acc = train(net, train_iter, test_iter, num_epochs,
                                              lr, try_gpu(cuda_idx), weight_decay)
         results.append((train_l, train_acc, test_acc))
