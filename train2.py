@@ -66,7 +66,7 @@ def train(net, train_iter, test_iter_list, num_epochs, lr, device, window_size, 
             best_train_acc = train_acc
             best_valid_acc = valid_acc
         print(f'Epoch {epoch} Loss: {train_l:.3f}, Train acc: {train_acc:.3f}, '
-              f'Test acc: {valid_acc:.3f}')
+              f'Valid acc: {valid_acc:.3f}')
     test_acc = evaluate_accuracy_gpu(best_net, [test_iter_list[1]], device)
     return best_train_l, best_train_acc, best_valid_acc, test_acc, best_net
 

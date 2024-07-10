@@ -113,6 +113,7 @@ class SequenceLearning(nn.Module):
         return H0, C0
 
     def forward(self, X, in_states, window_size):
+        self.rnn_layer.flatten_parameters()
         A = self.feature_extraction(X)
         A = A.view(A.shape[0], self.input_size)
         FC_out = self.residual_link(A)
