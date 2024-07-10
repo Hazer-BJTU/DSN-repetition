@@ -9,6 +9,7 @@ from train import accuracy
 import argparse
 import sys
 import train as pre_train
+import random
 
 
 def evaluate_accuracy_gpu(net, test_iter_list, device):
@@ -78,12 +79,14 @@ def k_fold_train(channel, cuda_idx, num_epochs_pre, num_epochs, lr_pre, lr, weig
     sample_rate = 100
     results = []
     total_train_l, total_train_acc, total_valid_acc, total_test_acc = 0, 0, 0, 0
+    shuffled_list = list(range(1, 11))
+    random.shuffle(shuffled_list)
     for i in range(5):
-        j = 2 * i + 1
-        test_subjects = [j, j + 1]
-        train_subjects = list(range(1, 11))
-        train_subjects.remove(j)
-        train_subjects.remove(j + 1)
+        j = 2 * i
+        test_subjects = [shuffled_list[j], shuffled_list[j + 1]]
+        train_subjects = shuffled_list
+        train_subjects.remove(shuffled_list[j])
+        train_subjects.remove(shuffled_list[j + 1])
         pre_train_iter = load_data.load_data_subject(train_subjects, channel, sample_rate,
                                                      batch_size_pre, True)
         pre_test_iter = load_data.load_data_subject(test_subjects, channel, sample_rate,
