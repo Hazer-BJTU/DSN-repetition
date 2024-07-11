@@ -84,7 +84,7 @@ def k_fold_train(channel, cuda_idx, num_epochs_pre, num_epochs, lr_pre, lr, weig
     for i in range(5):
         j = 2 * i
         test_subjects = [shuffled_list[j], shuffled_list[j + 1]]
-        train_subjects = shuffled_list
+        train_subjects = [item for item in shuffled_list]
         train_subjects.remove(shuffled_list[j])
         train_subjects.remove(shuffled_list[j + 1])
         pre_train_iter = load_data.load_data_subject(train_subjects, channel, sample_rate,
